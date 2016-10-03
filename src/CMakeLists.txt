@@ -53,21 +53,8 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     SET(LIBS_SYSTEM dl)
 ENDIF()
 
-ADD_EXECUTABLE(MQTTVersion MQTTVersion.c)
-ADD_LIBRARY(paho-mqtt3c SHARED ${common_src} MQTTClient.c)
-ADD_LIBRARY(paho-mqtt3a SHARED ${common_src} MQTTAsync.c)
-TARGET_LINK_LIBRARIES(paho-mqtt3c pthread ${LIBS_SYSTEM}) 
+ADD_LIBRARY(paho-mqtt3a STATIC ${common_src} MQTTAsync.c)
 TARGET_LINK_LIBRARIES(paho-mqtt3a pthread ${LIBS_SYSTEM})
-TARGET_LINK_LIBRARIES(MQTTVersion paho-mqtt3a paho-mqtt3c ${LIBS_SYSTEM})
-SET_TARGET_PROPERTIES(
-    paho-mqtt3c paho-mqtt3a PROPERTIES
-    VERSION ${CLIENT_VERSION}
-    SOVERSION ${PAHO_VERSION_MAJOR})
-INSTALL(TARGETS paho-mqtt3c paho-mqtt3a MQTTVersion
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib)
-INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h
-    DESTINATION include)
 
 IF (PAHO_WITH_SSL)
     SET(OPENSSL_LIB_SEARCH_PATH "" CACHE PATH "Directory containing OpenSSL libraries")
