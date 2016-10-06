@@ -47,14 +47,16 @@ SET(common_src
     LinkedList.c
     )
 
+ADD_LIBRARY(paho-mqtt3a STATIC ${common_src} MQTTAsync.c)
+
 IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     SET(LIBS_SYSTEM ws2_32)
+	TARGET_LINK_LIBRARIES(paho-mqtt3a ${LIBS_SYSTEM})
+	ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     SET(LIBS_SYSTEM dl)
+	TARGET_LINK_LIBRARIES(paho-mqtt3a pthread ${LIBS_SYSTEM})
 ENDIF()
-
-ADD_LIBRARY(paho-mqtt3a STATIC ${common_src} MQTTAsync.c)
-TARGET_LINK_LIBRARIES(paho-mqtt3a pthread ${LIBS_SYSTEM})
 
 IF (PAHO_WITH_SSL)
     SET(OPENSSL_LIB_SEARCH_PATH "" CACHE PATH "Directory containing OpenSSL libraries")

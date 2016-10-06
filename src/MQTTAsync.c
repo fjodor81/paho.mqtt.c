@@ -97,37 +97,23 @@ static sem_type send_sem = NULL;
 extern mutex_type stack_mutex;
 extern mutex_type heap_mutex;
 extern mutex_type log_mutex;
-BOOL APIENTRY DllMain(HANDLE hModule,
-					  DWORD  ul_reason_for_call,
-					  LPVOID lpReserved)
+void MQTTAsync_init()
 {
-	switch (ul_reason_for_call)
+	if (mqttasync_mutex == NULL)
 	{
-		case DLL_PROCESS_ATTACH:
-			Log(TRACE_MAX, -1, "DLL process attach");
-			if (mqttasync_mutex == NULL)
-			{
-				mqttasync_mutex = CreateMutex(NULL, 0, NULL);
-				mqttcommand_mutex = CreateMutex(NULL, 0, NULL);
-				send_sem = CreateEvent(
-		        NULL,               /* default security attributes */
-		        FALSE,              /* manual-reset event? */
-		        FALSE,              /* initial state is nonsignaled */
-		        NULL                /* object name */
-		        );
-				stack_mutex = CreateMutex(NULL, 0, NULL);
-				heap_mutex = CreateMutex(NULL, 0, NULL);
-				log_mutex = CreateMutex(NULL, 0, NULL);
-				socket_mutex = CreateMutex(NULL, 0, NULL);
-			}
-		case DLL_THREAD_ATTACH:
-			Log(TRACE_MAX, -1, "DLL thread attach");
-		case DLL_THREAD_DETACH:
-			Log(TRACE_MAX, -1, "DLL thread detach");
-		case DLL_PROCESS_DETACH:
-			Log(TRACE_MAX, -1, "DLL process detach");
+		mqttasync_mutex = CreateMutex(NULL, 0, NULL);
+		mqttcommand_mutex = CreateMutex(NULL, 0, NULL);
+		send_sem = CreateEvent(
+			NULL,               /* default security attributes */
+			FALSE,              /* manual-reset event? */
+			FALSE,              /* initial state is nonsignaled */
+			NULL                /* object name */
+		);
+		stack_mutex = CreateMutex(NULL, 0, NULL);
+		heap_mutex = CreateMutex(NULL, 0, NULL);
+		log_mutex = CreateMutex(NULL, 0, NULL);
+		socket_mutex = CreateMutex(NULL, 0, NULL);
 	}
-	return TRUE;
 }
 #else
 static pthread_mutex_t mqttasync_mutex_store = PTHREAD_MUTEX_INITIALIZER;
@@ -183,7 +169,7 @@ void MQTTAsync_writeComplete(int socket);
 #define START_TIME_TYPE DWORD
 START_TIME_TYPE MQTTAsync_start_clock(void)
 {
-	return GetTickCount();
+	return GetTickCount64();
 }
 #elif defined(AIX)
 #define START_TIME_TYPE struct timespec
@@ -207,7 +193,7 @@ START_TIME_TYPE MQTTAsync_start_clock(void)
 #if defined(WIN32) || defined(WIN64)
 long MQTTAsync_elapsed(DWORD milliseconds)
 {
-	return GetTickCount() - milliseconds;
+	return GetTickCount64() - milliseconds;
 }
 #elif defined(AIX)
 #define assert(a)
@@ -398,10 +384,13 @@ int MQTTAsync_checkConn(MQTTAsync_command* command, MQTTAsyncs* client)
 	return rc;
 }
 
-
 int MQTTAsync_createWithOptions(MQTTAsync* handle, const char* serverURI, const char* clientId,
 		int persistence_type, void* persistence_context,  MQTTAsync_createOptions* options)
 {
+	// Run this here to initialize semaphores
+	// TODO Make sure its only run once (Erika)
+	MQTTAsync_init();
+
 	int rc = 0;
 	MQTTAsyncs *m = NULL;
 
