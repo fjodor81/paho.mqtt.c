@@ -73,18 +73,19 @@ IF (PAHO_WITH_SSL)
         ${OPENSSL_INC_SEARCH_PATH}
         )
     ADD_LIBRARY(paho-mqtt3cs SHARED ${common_src} MQTTClient.c SSLSocket.c)
-    ADD_LIBRARY(paho-mqtt3as SHARED ${common_src} MQTTAsync.c SSLSocket.c)
+    ADD_LIBRARY(paho-mqtt3as STATIC ${common_src} MQTTAsync.c SSLSocket.c)
+    ADD_DEFINITIONS(-DOPENSSL=1)
     TARGET_LINK_LIBRARIES(paho-mqtt3cs pthread ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
     TARGET_LINK_LIBRARIES(paho-mqtt3as pthread ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
-    SET_TARGET_PROPERTIES(
-        paho-mqtt3cs paho-mqtt3as PROPERTIES
-        VERSION ${CLIENT_VERSION}
-        SOVERSION ${PAHO_VERSION_MAJOR})
-    INSTALL(TARGETS paho-mqtt3cs
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
-    INSTALL(TARGETS paho-mqtt3as
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
+#    SET_TARGET_PROPERTIES(
+#        paho-mqtt3cs paho-mqtt3as PROPERTIES
+#        VERSION ${CLIENT_VERSION}
+#        SOVERSION ${PAHO_VERSION_MAJOR})
+#    INSTALL(TARGETS paho-mqtt3cs
+#        RUNTIME DESTINATION bin
+#        LIBRARY DESTINATION lib)
+#    INSTALL(TARGETS paho-mqtt3as
+#        RUNTIME DESTINATION bin
+#        LIBRARY DESTINATION lib)
 ENDIF()
 
