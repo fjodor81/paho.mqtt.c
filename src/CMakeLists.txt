@@ -70,11 +70,8 @@ IF (PAHO_WITH_SSL)
     ADD_LIBRARY(paho-mqtt3cs SHARED ${common_src} MQTTClient.c SSLSocket.c)
     ADD_LIBRARY(paho-mqtt3as STATIC ${common_src} MQTTAsync.c SSLSocket.c)
     ADD_DEFINITIONS(-DOPENSSL=1)
-	IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
-		SET(OPENSSL_LIBRARIES ssleay32 libeay32)
-		TARGET_LINK_LIBRARIES(paho-mqtt3cs ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
-		TARGET_LINK_LIBRARIES(paho-mqtt3as ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
-    ELSEIF (ANDROID)
+
+    IF (ANDROID)
         SET(crypto_DIR ${CMAKE_SOURCE_DIR}/../build/lib/android)
 
         ADD_LIBRARY(lib_crypto STATIC IMPORTED)
@@ -85,12 +82,16 @@ IF (PAHO_WITH_SSL)
         SET_TARGET_PROPERTIES(lib_ssl PROPERTIES IMPORTED_LOCATION
         ${crypto_DIR}/${ANDROID_ABI}/libssl.a)
 
-        TARGET_LINK_LIBRARIES(paho-mqtt3cs ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM} lib_ssl lib_crypto)
-        TARGET_LINK_LIBRARIES(paho-mqtt3as ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM} lib_ssl lib_crypto)
+        TARGET_LINK_LIBRARIES(paho-mqtt3cs Threads::Threads ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM} lib_ssl lib_crypto)
+        TARGET_LINK_LIBRARIES(paho-mqtt3as Threads::Threads ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM} lib_ssl lib_crypto)
 	ELSE()
-		SET(OPENSSL_LIBRARIES ssl crypto)
-		TARGET_LINK_LIBRARIES(paho-mqtt3cs pthread ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
-		TARGET_LINK_LIBRARIES(paho-mqtt3as pthread ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
+
+        IF (NOT OPENSSL_LIBRARIES) # Toolchains might define special names.
+            SET(OPENSSL_LIBRARIES ssl crypto)
+        ENDIF()
+
+		TARGET_LINK_LIBRARIES(paho-mqtt3cs Threads::Threads ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
+		TARGET_LINK_LIBRARIES(paho-mqtt3as Threads::Threads ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
 	ENDIF()
 	
 #    SET_TARGET_PROPERTIES(
