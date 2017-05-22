@@ -67,7 +67,7 @@ IF (PAHO_WITH_SSL)
     INCLUDE_DIRECTORIES(
         ${OPENSSL_INC_SEARCH_PATH}
         )
-    ADD_LIBRARY(paho-mqtt3cs SHARED ${common_src} MQTTClient.c SSLSocket.c)
+    ADD_LIBRARY(paho-mqtt3cs STATIC ${common_src} MQTTClient.c SSLSocket.c)
     ADD_LIBRARY(paho-mqtt3as STATIC ${common_src} MQTTAsync.c SSLSocket.c)
     ADD_DEFINITIONS(-DOPENSSL=1)
 
